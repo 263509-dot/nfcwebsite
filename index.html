@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mystery Cuisine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#faf5ea;
+    --ink:#2b2620;
+    --gold:#b8862b;
+    --line:rgba(43,38,32,0.14);
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0;
+    min-height:100%;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Noto Sans KR', sans-serif;
+  }
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:7vh 6vw;
+  }
+
+  .stage{
+    width:min(560px, 100%);
+    text-align:center;
+    position:relative;
+  }
+
+  .mascot{
+    width:78px;
+    margin:0 auto 0.6rem;
+    animation:bob 2.4s ease-in-out infinite;
+  }
+  @keyframes bob{
+    0%,100%{ transform:translateY(0) rotate(-3deg); }
+    50%{ transform:translateY(-7px) rotate(3deg); }
+  }
+
+  .eyebrow{
+    font-size:0.72rem;
+    letter-spacing:0.28em;
+    color:var(--gold);
+    font-weight:600;
+    margin:0 0 1.4rem;
+  }
+
+  .lead{
+    font-family:'Playfair Display', serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:clamp(1.1rem, 3.2vw, 1.5rem);
+    color:#5a5142;
+    margin:0 0 2.2rem;
+  }
+
+  .drum-wrap{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.9rem;
+    min-height:4.6rem;
+    margin-bottom:0.4rem;
+  }
+  .drum-badge{
+    width:64px; height:64px;
+    border-radius:50%;
+    background:#fffdf8;
+    border:1.5px solid rgba(184,134,43,0.35);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--gold);
+  }
+  .drum-badge svg{ width:56%; height:56%; }
+  .drum-badge.spin{ animation:spin 0.28s linear infinite; }
+  @keyframes spin{ 100%{ transform:rotate(360deg); } }
+
+  .audio-btn{
+    position:fixed;
+    top:1rem; right:1.1rem;
+    background:none;
+    border:1px solid rgba(43,38,32,0.25);
+    color:var(--ink);
+    font-size:0.75rem;
+    padding:0.5rem 0.9rem;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .audio-btn:hover{ background:rgba(43,38,32,0.06); }
+
+  .reveal{
+    margin-top:1.6rem;
+    opacity:0;
+    transform:translateY(10px);
+    transition:opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.show{ opacity:1; transform:translateY(0); }
+
+  .origin-pill{
+    display:inline-block;
+    font-size:0.72rem;
+    letter-spacing:0.12em;
+    color:var(--gold);
+    border:1px solid rgba(184,134,43,0.4);
+    padding:0.3rem 0.85rem;
+    border-radius:999px;
+    margin-bottom:1rem;
+    font-weight:600;
+  }
+
+  .dish-name{
+    font-family:'Noto Serif KR', serif;
+    font-weight:700;
+    font-size:clamp(1.4rem, 4.6vw, 2rem);
+    color:var(--ink);
+    margin:0 0 0.2rem;
+  }
+  .en-name{
+    font-family:'Playfair Display', serif;
+    font-style:italic;
+    font-size:0.9rem;
+    color:#8a8070;
+    margin:0 0 1.1rem;
+  }
+
+  .photo-frame{
+    width:100%;
+    aspect-ratio:4/3;
+    border-radius:14px;
+    overflow:hidden;
+    background:radial-gradient(circle at 50% 42%, #fff9ee 0%, #f0e4c8 70%, #e9dcbc 100%);
+    box-shadow:0 22px 46px -18px rgba(43,38,32,0.35);
+    margin-bottom:1.2rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    position:relative;
+  }
+  .photo-frame::after{
+    content:"다른 음식 보기";
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(43,38,32,0.55);
+    color:#fff;
+    font-size:0.82rem;
+    font-weight:600;
+    letter-spacing:0.04em;
+    opacity:0;
+    transition:opacity 0.2s ease;
+  }
+  .photo-frame:hover::after{ opacity:1; }
+  .dish-badge{
+    width:56%;
+    max-width:210px;
+    aspect-ratio:1;
+  }
+  .dish-badge svg{ width:100%; height:100%; }
+
+  .desc{
+    font-size:0.96rem;
+    line-height:1.85;
+    color:#4a4438;
+    max-width:32rem;
+    margin:0 auto 1.2rem;
+  }
+
+  .action-row{
+    display:flex;
+    gap:0.6rem;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-bottom:0.4rem;
+  }
+  .again-btn, .recipe-link{
+    border:none;
+    padding:0.8rem 1.5rem;
+    border-radius:999px;
+    font-size:0.86rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-block;
+    transition:transform 0.15s ease, background 0.15s ease;
+  }
+  .again-btn{ background:var(--ink); color:var(--cream); }
+  .again-btn:hover{ background:#3d362b; transform:translateY(-2px); }
+  .recipe-link{ background:transparent; color:var(--gold); border:1.5px solid rgba(184,134,43,0.5); }
+  .recipe-link:hover{ background:rgba(184,134,43,0.08); transform:translateY(-2px); }
+
+  .footer-note{
+    margin-top:2rem;
+    font-size:0.68rem;
+    color:#a39c8c;
+    letter-spacing:0.08em;
+  }
+</style>
+</head>
+<body>
+
+<button class="audio-btn" id="audioBtn">♪ 재즈 재생</button>
+
+<div class="stage">
+  <svg class="mascot" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="50" cy="60" rx="30" ry="26" fill="#fff6e6" stroke="#2b2620" stroke-width="2.5"/>
+    <path d="M22 44c0-14 12-26 28-26s28 12 28 26" fill="#ffffff" stroke="#2b2620" stroke-width="2.5"/>
+    <path d="M20 44c14-6 46-6 60 0" fill="none" stroke="#2b2620" stroke-width="2.5"/>
+    <circle cx="40" cy="58" r="3.4" fill="#2b2620"/>
+    <circle cx="60" cy="58" r="3.4" fill="#2b2620"/>
+    <path d="M40 70q10 8 20 0" fill="none" stroke="#2b2620" stroke-width="2.5" stroke-linecap="round"/>
+    <ellipse cx="30" cy="66" rx="4" ry="3" fill="#f2a9a9" opacity="0.7"/>
+    <ellipse cx="70" cy="66" rx="4" ry="3" fill="#f2a9a9" opacity="0.7"/>
+  </svg>
+
+  <p class="eyebrow">TODAY'S MYSTERY DISH</p>
+  <p class="lead">the cuisine i will be introducing you is</p>
+
+  <div class="drum-wrap">
+    <div class="drum-badge spin" id="drumBadge"><svg viewBox="0 0 64 64"></svg></div>
+  </div>
+
+  <div class="reveal" id="reveal">
+    <div class="origin-pill" id="originPill"></div>
+    <div class="photo-frame" id="photoFrame">
+      <div class="dish-badge" id="dishBadge"></div>
+    </div>
+    <p class="dish-name" id="dishName"></p>
+    <p class="en-name" id="enName"></p>
+    <p class="desc" id="descText"></p>
+    <div class="action-row">
+      <button class="again-btn" id="againBtn">다른 요리 뽑기</button>
+      <a class="recipe-link" id="recipeLink" href="#" target="_blank" rel="noopener">조리법 보러가기 ↗</a>
+    </div>
+  </div>
+
+  <p class="footer-note" id="footerNote"></p>
+</div>
+
+<script>
+(function(){
+  const FOODS = [
+    { name:"푸아그라", en:"Foie Gras", origin:"프랑스", icon:"toast",
+      desc:"거위나 오리의 간을 비대하게 키워 만드는 프랑스의 고급 식재료로, 부드럽고 진한 풍미가 특징이에요." },
+    { name:"에스카르고", en:"Escargot", origin:"프랑스", icon:"snail",
+      desc:"버터와 마늘, 파슬리로 조리한 식용 달팽이 요리로, 프랑스 전통 코스 요리에 자주 등장해요." },
+    { name:"하몽 이베리코", en:"Jamón Ibérico", origin:"스페인", icon:"ham",
+      desc:"이베리코 돼지 뒷다리를 오랫동안 건조·숙성시켜 만드는 스페인의 대표 생햄이에요." },
+    { name:"페르세베스", en:"Percebes (Goose Barnacles)", origin:"스페인", icon:"shell",
+      desc:"암초에 붙어 자라는 거위목따개비로, 채취가 위험해 가격이 비싼 별미로 꼽혀요." },
+    { name:"모르시야", en:"Morcilla", origin:"스페인", icon:"ringsausage",
+      desc:"돼지 피와 쌀, 향신료를 넣어 만드는 스페인식 순대예요." },
+    { name:"카수 마르주", en:"Casu Marzu", origin:"이탈리아", icon:"cheese",
+      desc:"치즈파리 유충이 발효를 돕는 사르데냐의 전통 치즈로, 살아있는 구더기가 그대로 들어있어요." },
+    { name:"해기스", en:"Haggis", origin:"스코틀랜드", icon:"haggis",
+      desc:"양의 내장과 오트밀, 향신료를 양의 위장에 넣어 삶아내는 스코틀랜드 전통 요리예요." },
+    { name:"블랙 푸딩", en:"Black Pudding", origin:"영국", icon:"slices",
+      desc:"돼지 피와 지방, 곡물을 섞어 만든 소시지로, 영국식 아침식사에 자주 곁들여져요." },
+    { name:"마마이트", en:"Marmite", origin:"영국", icon:"marmite",
+      desc:"맥주를 만들고 남은 효모로 만드는 짙고 짭짤한 스프레드로, 호불호가 극명하게 갈려요." },
+    { name:"스타게이지 파이", en:"Stargazy Pie", origin:"영국(콘월)", icon:"pie",
+      desc:"생선 머리가 파이 껍질 위로 삐죽 튀어나와 하늘을 바라보는 듯한 모양의 콘월 전통 파이예요." },
+    { name:"루테피스크", en:"Lutefisk", origin:"노르웨이", icon:"lutefisk",
+      desc:"말린 대구를 잿물에 절여 부드럽게 만든 뒤 쪄먹는 스칸디나비아 전통 음식이에요." },
+    { name:"수르스트뢰밍", en:"Surströmming", origin:"스웨덴", icon:"can",
+      desc:"청어를 발효시켜 캔에 담은 스웨덴 음식으로, 세상에서 가장 냄새가 독한 음식 중 하나로 꼽혀요." },
+    { name:"하칼", en:"Hákarl", origin:"아이슬란드", icon:"shark",
+      desc:"그린란드 상어를 발효시킨 뒤 건조해 만드는 아이슬란드 전통 음식이에요." },
+    { name:"스말라호베", en:"Smalahove (Sheep's Head)", origin:"노르웨이", icon:"sheep",
+      desc:"양의 머리를 통째로 훈제하거나 삶아 먹는 노르웨이 서부의 전통 요리예요." },
+    { name:"피단(송화단)", en:"Century Egg", origin:"중국", icon:"centuryegg",
+      desc:"오리알을 진흙과 재, 소금 등에 몇 주간 숙성시켜 만드는, 검은 젤리처럼 변한 알 요리예요." },
+    { name:"처우또우푸", en:"Stinky Tofu", origin:"대만", icon:"tofu",
+      desc:"발효 브라인에 담가 강한 냄새가 나는 두부로, 튀겨서 길거리 음식으로 즐겨 먹어요." },
+    { name:"제비집 수프", en:"Bird's Nest Soup", origin:"중국", icon:"nest",
+      desc:"금사연이라는 새의 침으로 만든 둥지를 재료로 끓이는 고급 중화 보양식이에요." },
+    { name:"오리 선지탕", en:"Duck Blood Soup", origin:"중국", icon:"bloodbowl",
+      desc:"응고된 오리 피를 두부처럼 잘라 넣고 끓이는 중국 남부 지역의 보양 요리예요." },
+    { name:"낫토", en:"Natto", origin:"일본", icon:"natto",
+      desc:"삶은 콩을 발효시켜 만든 일본 음식으로, 특유의 끈적한 실과 강한 향이 특징이에요." },
+    { name:"후구 사시미", en:"Fugu Sashimi", origin:"일본", icon:"fugu",
+      desc:"맹독이 있는 복어를 전문 자격을 가진 요리사가 얇게 저며내는 일본의 고급 회 요리예요." },
+    { name:"시라코", en:"Shirako", origin:"일본", icon:"shirako",
+      desc:"대구나 아귀 등의 정소(이리)를 살짝 데치거나 구워 먹는 부드러운 식감의 요리예요." },
+    { name:"바사시", en:"Basashi (Horse Sashimi)", origin:"일본", icon:"sashimi",
+      desc:"말고기를 얇게 썰어 날것으로 먹는 일본 규슈 지역의 향토 음식이에요." },
+    { name:"참치 눈알 조림", en:"Tuna Eyeball", origin:"일본", icon:"eye",
+      desc:"참치의 눈알을 간장에 조려 먹는 일본의 별미로, 쫄깃한 식감이 특징이에요." },
+    { name:"발룻", en:"Balut", origin:"필리핀", icon:"balut",
+      desc:"부화 직전의 오리알을 삶아 껍질째 먹는 필리핀의 대표적인 길거리 간식이에요." },
+    { name:"두리안", en:"Durian", origin:"동남아시아", icon:"fruit",
+      desc:"강렬한 냄새 때문에 '과일의 왕이자 저주'로 불리지만, 팬들에게는 최고의 열대과일이에요." },
+    { name:"스네이크 와인", en:"Snake Wine", origin:"베트남", icon:"bottle",
+      desc:"뱀을 통째로 담가 숙성시킨 술로, 강장 효과가 있다고 알려져 있어요." },
+    { name:"띠엣깐", en:"Tiết Canh (Blood Pudding)", origin:"베트남", icon:"tietcanh",
+      desc:"동물의 생피를 굳혀 만드는 베트남의 전통 요리로, 향신 허브와 함께 즐겨요." },
+    { name:"코피 루왁", en:"Kopi Luwak", origin:"인도네시아", icon:"beans",
+      desc:"사향고양이가 먹고 배설한 커피 열매로 만드는, 세상에서 가장 비싼 커피 중 하나예요." },
+    { name:"위틀라코체", en:"Huitlacoche", origin:"멕시코", icon:"smutcorn",
+      desc:"옥수수에 기생하는 검은 곰팡이균으로, 고소하고 은은한 버섯 향을 가진 별미예요." },
+    { name:"꾸이", en:"Guinea Pig (Cuy)", origin:"페루", icon:"cuy",
+      desc:"기니피그를 통째로 구워 먹는 안데스 지역의 전통 음식이에요." },
+    { name:"세비체", en:"Ceviche", origin:"페루", icon:"ceviche",
+      desc:"생선이나 해산물을 라임즙에 재워 산으로 '익혀' 먹는 페루의 대표 요리예요." },
+    { name:"로키마운틴 오이스터", en:"Rocky Mountain Oysters", origin:"미국", icon:"nuggets",
+      desc:"소나 양의 고환을 튀겨 만드는 미국 서부의 별미로, 이름과 달리 굴이 아니에요." },
+    { name:"악어고기 스테이크", en:"Alligator Meat", origin:"미국(루이지애나)", icon:"steak",
+      desc:"쫄깃한 닭고기와 비슷한 식감을 가진 악어고기로, 튀김이나 스테이크로 즐겨요." },
+    { name:"스크래플", en:"Scrapple", origin:"미국", icon:"slab",
+      desc:"돼지 부산물과 옥수수가루를 섞어 굳힌 뒤 슬라이스해 구워 먹는 미국 동부의 음식이에요." },
+    { name:"베지마이트", en:"Vegemite", origin:"호주", icon:"vegemite",
+      desc:"맥주 효모로 만든 짙고 짭짤한 스프레드로, 호주인들의 국민 아침 식재료예요." },
+    { name:"캥거루 스테이크", en:"Kangaroo Steak", origin:"호주", icon:"grilled",
+      desc:"지방이 적고 담백한 붉은 살코기로, 호주에서는 흔한 식재료로 쓰여요." },
+    { name:"낙타고기 구이", en:"Camel Meat", origin:"중동", icon:"camel",
+      desc:"담백하면서도 약간 단맛이 도는 낙타고기는 중동 지역에서 흔히 먹는 식재료예요." },
+    { name:"묵턱(고래 지방)", en:"Muktuk (Whale Blubber)", origin:"북극권(이누이트)", icon:"whale",
+      desc:"고래의 피부와 지방층을 날것으로 먹는 이누이트족의 전통 음식이에요." },
+    { name:"고래고기 사시미", en:"Whale Meat Sashimi", origin:"일본/노르웨이", icon:"whaleslices",
+      desc:"일부 지역에서 전통적으로 소비되어 온 고래고기 요리로, 국제적으로 논쟁이 있는 식문화예요." },
+    { name:"보독", en:"Boodog", origin:"몽골", icon:"boodog",
+      desc:"염소나 양 뱃속에 달군 돌을 넣어 통째로 익히는 몽골 유목민의 전통 조리법이에요." },
+    { name:"페이조아다", en:"Feijoada", origin:"브라질", icon:"blackpot",
+      desc:"검은콩과 다양한 돼지고기 부위를 오래 끓인 브라질의 국민 스튜예요." },
+    { name:"오소부코", en:"Osso Buco", origin:"이탈리아", icon:"ossobuco",
+      desc:"뼈가 붙은 송아지 정강이살을 와인과 채소로 오래 졸여내는 이탈리아 밀라노식 요리예요." },
+    { name:"무사카", en:"Moussaka", origin:"그리스", icon:"layers",
+      desc:"가지와 다진 고기, 베샤멜소스를 층층이 쌓아 구워내는 그리스·발칸 지역의 대표 오븐 요리예요." },
+    { name:"시니강", en:"Sinigang", origin:"필리핀", icon:"sinigang",
+      desc:"타마린드로 새콤한 맛을 낸 필리핀식 고기·해산물 스튜예요." },
+    { name:"른당", en:"Rendang", origin:"인도네시아", icon:"rendang",
+      desc:"코코넛 밀크와 향신료로 몇 시간을 졸여 만드는 인도네시아식 매콤한 소고기 요리예요." },
+    { name:"코치니요 아사도", en:"Cochinillo Asado", origin:"스페인", icon:"pig",
+      desc:"생후 몇 주 된 새끼돼지를 통째로 구워내는 스페인 세고비아의 명물 요리예요." },
+    { name:"타진", en:"Tagine", origin:"모로코", icon:"tagine",
+      desc:"원뿔 모양 뚜껑의 전용 냄비에 고기와 말린 과일, 향신료를 넣어 뭉근히 익히는 모로코 요리예요." },
+    { name:"버니 차우", en:"Bunny Chow", origin:"남아프리카공화국", icon:"loaf",
+      desc:"속을 파낸 빵 통 안에 카레를 가득 채워 먹는 남아공 더반 지역의 명물 길거리 음식이에요." },
+    { name:"푸틴", en:"Poutine", origin:"캐나다", icon:"fries",
+      desc:"감자튀김 위에 치즈 커드와 진한 그레이비 소스를 얹어 먹는 캐나다 퀘벡의 대표 음식이에요." },
+    { name:"살로", en:"Salo", origin:"우크라이나", icon:"bacon",
+      desc:"소금에 절이거나 훈제한 돼지비계를 얇게 썰어 빵과 함께 먹는 동유럽의 전통 음식이에요." },
+  ];
+
+  const ICONS = {
+    toast: `<rect x="12" y="16" width="40" height="34" rx="6" fill="#e3b46a" stroke="#a4723c" stroke-width="2"/><ellipse cx="32" cy="30" rx="15" ry="9" fill="#e8b4a0" stroke="#b9786a" stroke-width="2"/><circle cx="26" cy="28" r="2" fill="#f5d2c4"/>`,
+    snail: `<path d="M14 44c0-11 9-19 20-19 9 0 16 6 16 14s-6 12-13 12-11-4-11-9 4-8 8-8 6 3 6 6" fill="none" stroke="#8a5a34" stroke-width="2.4" stroke-linecap="round"/><path d="M14 44c-4 4-4 10 2 12 8 3 30 2 34-6" fill="#cbb48a" stroke="#8a5a34" stroke-width="2.4" stroke-linecap="round"/>`,
+    ham: `<path d="M14 20c8-8 26-6 30 6 3 10-6 18-14 20l-6 8-6-4 4-8c-8-4-14-14-8-22Z" fill="#a8423a" stroke="#6e2420" stroke-width="2"/><circle cx="46" cy="52" r="4" fill="#f2e4cf" stroke="#6e2420" stroke-width="2"/>`,
+    shell: `<path d="M12 40 22 20 32 40Z M24 42 34 22 44 42Z M36 40 46 22 54 40Z" fill="#cbb9a0" stroke="#8a7758" stroke-width="1.8" stroke-linejoin="round"/>`,
+    ringsausage: `<circle cx="32" cy="32" r="16" fill="none" stroke="#5a2420" stroke-width="10"/><circle cx="32" cy="32" r="16" fill="none" stroke="#8a4a3a" stroke-width="3" stroke-dasharray="3 5"/>`,
+    cheese: `<path d="M10 40 L32 16 L54 40 L54 48 L10 48 Z" fill="#f5d76e" stroke="#c9a227" stroke-width="2" stroke-linejoin="round"/><circle cx="30" cy="34" r="2.6" fill="#c9a227"/><circle cx="40" cy="30" r="1.8" fill="#c9a227"/>`,
+    haggis: `<path d="M16 40c-4-14 6-24 16-24s20 10 16 24c-4 8-28 8-32 0Z" fill="#c9a97a" stroke="#8a6a3a" stroke-width="2"/><path d="M24 20c2-6 14-6 16 0" fill="none" stroke="#8a6a3a" stroke-width="2"/><path d="M22 34h20" stroke="#8a6a3a" stroke-width="1.5"/>`,
+    slices: `<circle cx="22" cy="30" r="10" fill="#3a2020" stroke="#1a0e0e" stroke-width="2"/><circle cx="42" cy="34" r="10" fill="#3a2020" stroke="#1a0e0e" stroke-width="2"/><circle cx="30" cy="46" r="9" fill="#3a2020" stroke="#1a0e0e" stroke-width="2"/><circle cx="19" cy="28" r="1.6" fill="#f2e4cf"/><circle cx="45" cy="36" r="1.6" fill="#f2e4cf"/><circle cx="28" cy="48" r="1.6" fill="#f2e4cf"/>`,
+    marmite: `<rect x="18" y="20" width="28" height="30" rx="8" fill="#4a2a14" stroke="#2a160a" stroke-width="2"/><rect x="22" y="12" width="20" height="9" rx="2" fill="#d63a2a"/><rect x="24" y="30" width="16" height="10" fill="#ffd23f"/>`,
+    pie: `<ellipse cx="32" cy="40" rx="22" ry="12" fill="#e0b060" stroke="#a4723c" stroke-width="2"/><path d="M20 36l-4-14 8 10M32 34V14l4 18M44 36l4-14-8 10" fill="#8fb4d6" stroke="#4a6f92" stroke-width="1.8"/>`,
+    lutefisk: `<ellipse cx="32" cy="42" rx="24" ry="10" fill="#fff" stroke="#c9c2b0" stroke-width="2"/><path d="M12 38c10-10 30-10 40 0-10 6-30 6-40 0Z" fill="#f3efe0" stroke="#bdb59c" stroke-width="2"/>`,
+    can: `<rect x="16" y="20" width="32" height="28" rx="3" fill="#cfd6dc" stroke="#6b7580" stroke-width="2"/><ellipse cx="32" cy="20" rx="16" ry="5" fill="#e6ebef" stroke="#6b7580" stroke-width="2"/><rect x="16" y="30" width="32" height="8" fill="#e8553a"/>`,
+    shark: `<path d="M10 50C22 48 28 30 34 12 40 28 48 44 56 50Z" fill="#7a8a99" stroke="#4a5a69" stroke-width="2"/><path d="M6 52c14 4 38 4 52 0" fill="none" stroke="#4a8fc0" stroke-width="3"/>`,
+    sheep: `<ellipse cx="32" cy="30" rx="18" ry="16" fill="#f2efe6" stroke="#9a9484" stroke-width="2"/><ellipse cx="32" cy="38" rx="9" ry="12" fill="#d8cfc0" stroke="#9a9484" stroke-width="2"/><circle cx="26" cy="30" r="2" fill="#2b2620"/><circle cx="38" cy="30" r="2" fill="#2b2620"/><path d="M14 24c-6 2-6 10 0 10M50 24c6 2 6 10 0 10" fill="none" stroke="#9a9484" stroke-width="3"/>`,
+    centuryegg: `<ellipse cx="32" cy="32" rx="22" ry="16" fill="#2b3a22" stroke="#1a2412" stroke-width="2"/><ellipse cx="32" cy="32" rx="9" ry="7" fill="#7a8a3a"/><path d="M16 26c6-6 26-6 32 0" fill="none" stroke="#9aa86a" stroke-width="1.5"/>`,
+    tofu: `<rect x="10" y="30" width="22" height="22" rx="3" fill="#fff4d2" stroke="#c9a227" stroke-width="2"/><rect x="30" y="22" width="22" height="22" rx="3" fill="#f3d27a" stroke="#c9a227" stroke-width="2"/><path d="M20 24c-2-4 2-6 0-10M40 16c-2-4 2-6 0-10" fill="none" stroke="#8aa04a" stroke-width="2"/>`,
+    nest: `<path d="M10 34h44c0 12-10 20-22 20S10 46 10 34Z" fill="#f2ede0" stroke="#a9744a" stroke-width="2"/><path d="M16 32c6-10 26-10 32 0M20 30c4-6 20-6 24 0M24 28c3-3 13-3 16 0" fill="none" stroke="#e0c89a" stroke-width="2.5"/>`,
+    bloodbowl: `<path d="M10 30h44c0 12-10 20-22 20S10 42 10 30Z" fill="#f2ede0" stroke="#a9744a" stroke-width="2"/><ellipse cx="32" cy="30" rx="20" ry="4" fill="#c9622e"/><rect x="22" y="22" width="7" height="7" fill="#7a1f1f"/><rect x="33" y="20" width="7" height="7" fill="#7a1f1f"/>`,
+    natto: `<path d="M12 34h40c0 10-8 18-20 18S12 44 12 34Z" fill="#f2ede0" stroke="#a9744a" stroke-width="2"/><circle cx="24" cy="32" r="3.5" fill="#8a6a3a"/><circle cx="32" cy="30" r="3.5" fill="#8a6a3a"/><circle cx="40" cy="32" r="3.5" fill="#8a6a3a"/><path d="M32 26c0-10 8-12 10-18M32 26c0-8-6-10-6-16" fill="none" stroke="#c9b98f" stroke-width="1.6"/>`,
+    fugu: `<circle cx="30" cy="34" r="16" fill="#e8d9a8" stroke="#a4923a" stroke-width="2"/><path d="M30 18V12M18 22l-4-5M42 22l4-5M14 34H8" stroke="#a4923a" stroke-width="2" stroke-linecap="round"/><circle cx="23" cy="30" r="2.4" fill="#2b2620"/><ellipse cx="30" cy="42" rx="4" ry="2.5" fill="#d98a8a"/><path d="M46 34l10-7v14Z" fill="#e8d9a8" stroke="#a4923a" stroke-width="2"/>`,
+    shirako: `<path d="M12 40c-4-8 4-14 10-12 2-8 14-8 16-2 8-4 14 4 10 10 6 4 2 12-6 10-6 6-14 4-16 0-8 2-14-2-14-6Z" fill="#fbf3e8" stroke="#d9c9b0" stroke-width="2"/>`,
+    sashimi: `<path d="M10 44 20 20 26 46Z" fill="#e8575a" stroke="#a02a30" stroke-width="2"/><path d="M24 46 32 18 40 46Z" fill="#f07a7c" stroke="#a02a30" stroke-width="2"/><path d="M38 46 44 20 54 44Z" fill="#e8575a" stroke="#a02a30" stroke-width="2"/>`,
+    eye: `<ellipse cx="32" cy="32" rx="22" ry="14" fill="#fff" stroke="#4a6f92" stroke-width="2"/><circle cx="32" cy="32" r="9" fill="#5a8fb0"/><circle cx="32" cy="32" r="4" fill="#1a2430"/><circle cx="29" cy="29" r="1.6" fill="#fff"/>`,
+    balut: `<path d="M18 36c0-10 6-20 14-20s14 10 14 20c0 8-6 14-14 14s-14-6-14-14Z" fill="#fff6e6" stroke="#d9b36a" stroke-width="2"/><path d="M20 26l6 4 4-6 5 6 5-4" fill="none" stroke="#a4723c" stroke-width="2"/><path d="M28 44c0-6 8-6 8 0Z" fill="#e8a23a"/>`,
+    fruit: `<ellipse cx="32" cy="34" rx="18" ry="16" fill="#8a9a3a" stroke="#5f6b24" stroke-width="2"/><path d="M32 34 L20 16M32 34 L44 16M32 34 L14 30M32 34 L50 30M32 34 L18 46M32 34 L46 46" stroke="#5f6b24" stroke-width="1.6" stroke-linecap="round"/>`,
+    bottle: `<path d="M26 10h12v10l6 8v24H20V28l6-8Z" fill="#e8d9a8" stroke="#8a6a3a" stroke-width="2"/><path d="M26 48c-6-4 2-8 8-6s2 8 8 4" fill="none" stroke="#4a7a3a" stroke-width="3" stroke-linecap="round"/>`,
+    tietcanh: `<ellipse cx="32" cy="44" rx="24" ry="8" fill="#fff" stroke="#c9c2b0" stroke-width="2"/><path d="M14 42c2-14 34-14 36 0Z" fill="#8a1f2a" stroke="#5a1018" stroke-width="2"/><path d="M26 28c2-4 4-4 6-8" fill="none" stroke="#6fa04a" stroke-width="2"/>`,
+    beans: `<ellipse cx="24" cy="30" rx="12" ry="16" transform="rotate(-20 24 30)" fill="#5a3a24" stroke="#2b1a0e" stroke-width="2"/><path d="M18 18c6 8 4 18 10 26" fill="none" stroke="#2b1a0e" stroke-width="2"/><ellipse cx="42" cy="38" rx="11" ry="15" transform="rotate(20 42 38)" fill="#6a4630" stroke="#2b1a0e" stroke-width="2"/><path d="M46 24c-6 8-2 16-6 26" fill="none" stroke="#2b1a0e" stroke-width="2"/>`,
+    smutcorn: `<path d="M32 12c8 0 12 8 12 20s-4 20-12 20-12-8-12-20 4-20 12-20Z" fill="#6a6a7a" stroke="#2b2b38" stroke-width="2"/><circle cx="26" cy="24" r="4" fill="#2b2b38"/><circle cx="36" cy="30" r="5" fill="#2b2b38"/><circle cx="28" cy="40" r="4" fill="#2b2b38"/>`,
+    cuy: `<ellipse cx="30" cy="38" rx="20" ry="14" fill="#c9965a" stroke="#8a5a2a" stroke-width="2"/><circle cx="48" cy="32" r="8" fill="#d9a870" stroke="#8a5a2a" stroke-width="2"/><circle cx="50" cy="30" r="1.8" fill="#2b2620"/><circle cx="46" cy="24" r="3.5" fill="#b0743a"/>`,
+    ceviche: `<path d="M12 18h40L32 40Z" fill="#fff" stroke="#6b7580" stroke-width="2"/><path d="M18 22h28L32 36Z" fill="#f7c9a0"/><path d="M32 40v12M22 52h20" stroke="#6b7580" stroke-width="2.4"/><circle cx="48" cy="18" r="6" fill="#8fc24a" stroke="#4a7a1a" stroke-width="2"/>`,
+    nuggets: `<circle cx="22" cy="36" r="9" fill="#d9a050" stroke="#9a6a24" stroke-width="2"/><circle cx="40" cy="30" r="10" fill="#e0aa5a" stroke="#9a6a24" stroke-width="2"/><circle cx="38" cy="46" r="8" fill="#d9a050" stroke="#9a6a24" stroke-width="2"/><circle cx="36" cy="28" r="1.4" fill="#9a6a24"/><circle cx="20" cy="38" r="1.4" fill="#9a6a24"/>`,
+    steak: `<path d="M12 36c0-14 20-22 36-14 8 8 0 24-14 26-12 2-22-2-22-12Z" fill="#a84a2a" stroke="#6e2a14" stroke-width="2"/><path d="M26 22v24" stroke="#f2e4cf" stroke-width="4"/>`,
+    slab: `<rect x="10" y="26" width="44" height="14" rx="2" fill="#a68a5a" stroke="#6e5a30" stroke-width="2"/><path d="M10 30h44M10 35h44" stroke="#c9b284" stroke-width="1.6"/>`,
+    vegemite: `<rect x="18" y="20" width="28" height="30" rx="4" fill="#1a1410" stroke="#000" stroke-width="2"/><rect x="21" y="9" width="22" height="11" rx="2" fill="#f2c200" stroke="#a48a00" stroke-width="2"/><rect x="22" y="30" width="20" height="10" fill="#d63a2a"/>`,
+    grilled: `<ellipse cx="32" cy="34" rx="22" ry="14" fill="#8a2a30" stroke="#4a1018" stroke-width="2"/><path d="M22 24v20M32 22v24M42 24v20" stroke="#4a1018" stroke-width="2.4"/>`,
+    camel: `<path d="M8 48c2-16 8-16 12-8 2-12 12-12 14 0 4-6 8-6 10 2l10 6v6H8Z" fill="#d9b070" stroke="#8a6a2a" stroke-width="2"/>`,
+    whale: `<path d="M32 50V30c-8 0-16-6-18-16 8 2 14 6 18 12 4-6 10-10 18-12-2 10-10 16-18 16Z" fill="#3a5a7a" stroke="#1f3448" stroke-width="2"/><path d="M6 54c16-4 36-4 52 0" fill="none" stroke="#4a8fc0" stroke-width="3"/>`,
+    whaleslices: `<path d="M10 44 20 20 26 46Z" fill="#8a2a3a" stroke="#4a1018" stroke-width="2"/><path d="M24 46 32 18 40 46Z" fill="#a8404f" stroke="#4a1018" stroke-width="2"/><path d="M38 46 44 20 54 44Z" fill="#8a2a3a" stroke="#4a1018" stroke-width="2"/>`,
+    boodog: `<ellipse cx="32" cy="32" rx="18" ry="14" fill="#c9965a" stroke="#8a5a2a" stroke-width="2"/><circle cx="14" cy="50" r="5" fill="#6b6b6b"/><circle cx="26" cy="54" r="5" fill="#808080"/><circle cx="40" cy="54" r="5" fill="#6b6b6b"/><circle cx="52" cy="50" r="5" fill="#808080"/><path d="M20 20c-4-6-2-10 2-10M44 20c4-6 2-10-2-10" fill="none" stroke="#8a5a2a" stroke-width="2.4"/>`,
+    blackpot: `<path d="M10 30h44v8c0 10-8 16-22 16S10 48 10 38Z" fill="#2b2b2b" stroke="#000" stroke-width="2"/><ellipse cx="32" cy="30" rx="22" ry="5" fill="#3a2418"/><circle cx="24" cy="30" r="3" fill="#1a1a1a"/><rect x="34" y="26" width="8" height="6" rx="2" fill="#c9622e"/><path d="M6 32h4M54 32h4" stroke="#000" stroke-width="3"/>`,
+    ossobuco: `<circle cx="32" cy="32" r="20" fill="#a8602a" stroke="#6e3a14" stroke-width="2"/><circle cx="32" cy="32" r="8" fill="#f2e4cf" stroke="#6e3a14" stroke-width="2"/><circle cx="32" cy="32" r="3" fill="#d9a85a"/>`,
+    layers: `<rect x="10" y="40" width="44" height="10" rx="2" fill="#f5e6b8" stroke="#a4723c" stroke-width="2"/><rect x="10" y="30" width="44" height="10" fill="#8a3a2a" stroke="#a4723c" stroke-width="2"/><rect x="10" y="20" width="44" height="10" fill="#6a3a5a" stroke="#a4723c" stroke-width="2"/><rect x="10" y="12" width="44" height="8" rx="2" fill="#e8c27a" stroke="#a4723c" stroke-width="2"/>`,
+    sinigang: `<path d="M10 32h44c0 12-10 20-22 20S10 44 10 32Z" fill="#f2ede0" stroke="#a9744a" stroke-width="2"/><ellipse cx="32" cy="32" rx="20" ry="4" fill="#d9c84a"/><path d="M20 28c6-8 14-8 20 0" fill="#7ab050" stroke="#4a7a2a" stroke-width="2"/><circle cx="26" cy="30" r="3" fill="#e87a6a"/>`,
+    rendang: `<path d="M10 42c0-14 12-22 22-22s22 8 22 22Z" fill="#5a2a1a" stroke="#2a1008" stroke-width="2"/><ellipse cx="32" cy="46" rx="24" ry="6" fill="#fff" stroke="#c9c2b0" stroke-width="2"/><circle cx="26" cy="34" r="3" fill="#8a4a2a"/><circle cx="38" cy="30" r="3" fill="#8a4a2a"/><path d="M42 14l6-6M48 18l8-2" stroke="#c9a227" stroke-width="2"/>`,
+    pig: `<ellipse cx="30" cy="36" rx="22" ry="14" fill="#d9a066" stroke="#a4723c" stroke-width="2"/><circle cx="50" cy="32" r="9" fill="#e0aa72" stroke="#a4723c" stroke-width="2"/><ellipse cx="56" cy="34" rx="4" ry="3" fill="#e8a8a0"/><path d="M44 24l-2-8 6 4Z" fill="#d9a066" stroke="#a4723c" stroke-width="2"/><path d="M10 36c-4 0-6-6-2-8" fill="none" stroke="#a4723c" stroke-width="2.4"/>`,
+    tagine: `<path d="M12 44h40v4H12z" fill="#a4723c"/><path d="M14 44c0-8 8-14 18-14s18 6 18 14" fill="#e0a24a" stroke="#a4723c" stroke-width="2"/><path d="M32 30V16" stroke="#a4723c" stroke-width="2"/><path d="M22 16c4-6 16-6 20 0" fill="none" stroke="#a4723c" stroke-width="2" stroke-linecap="round"/><circle cx="32" cy="14" r="2.4" fill="#a4723c"/>`,
+    loaf: `<path d="M10 28c0-10 44-10 44 0v18c0 6-44 6-44 0Z" fill="#e0b060" stroke="#a4723c" stroke-width="2"/><ellipse cx="32" cy="28" rx="18" ry="6" fill="#c9622e"/><circle cx="26" cy="27" r="2" fill="#f2c94c"/>`,
+    fries: `<path d="M16 28h32l-4 24H20Z" fill="#d63a2a" stroke="#8a1a10" stroke-width="2"/><path d="M20 28l-2-14M26 28l-1-16M32 28V10M38 28l1-16M44 28l2-14" stroke="#f2c94c" stroke-width="4" stroke-linecap="round"/><path d="M18 28c4 4 24 4 28 0" fill="none" stroke="#7a4a2a" stroke-width="4"/>`,
+    bacon: `<path d="M8 28c8-6 14 6 22 0s14 6 26 0v14c-8 6-14-6-22 0S18 48 8 42Z" fill="#f6e0d0" stroke="#c9998a" stroke-width="2"/><path d="M8 35c8-6 14 6 22 0s14 6 26 0" fill="none" stroke="#d96a5a" stroke-width="3"/>`,
+  };
+
+  const drumBadge = document.getElementById('drumBadge');
+  const reveal = document.getElementById('reveal');
+  const originPill = document.getElementById('originPill');
+  const dishBadge = document.getElementById('dishBadge');
+  const dishName = document.getElementById('dishName');
+  const enName = document.getElementById('enName');
+  const descText = document.getElementById('descText');
+  const againBtn = document.getElementById('againBtn');
+  const recipeLink = document.getElementById('recipeLink');
+  const photoFrame = document.getElementById('photoFrame');
+  const footerNote = document.getElementById('footerNote');
+
+  footerNote.textContent = FOODS.length + "가지 신기한 외국 음식 중 하나가 무작위로 소개됩니다";
+
+  let currentIndex = -1;
+
+  function randomIndexExcluding(exclude){
+    if(FOODS.length <= 1) return 0;
+    let idx;
+    do { idx = Math.floor(Math.random() * FOODS.length); } while(idx === exclude);
+    return idx;
+  }
+
+  function iconSVG(key){
+    return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">${ICONS[key] || ICONS.toast}</svg>`;
+  }
+
+  function runDrumroll(){
+    reveal.classList.remove('show');
+    drumBadge.classList.add('spin');
+
+    const finalIndex = randomIndexExcluding(currentIndex);
+    const keys = Object.keys(ICONS);
+    const totalSteps = 16;
+    let step = 0;
+
+    function tick(){
+      const shownKey = (step < totalSteps - 1)
+        ? keys[Math.floor(Math.random() * keys.length)]
+        : FOODS[finalIndex].icon;
+      drumBadge.innerHTML = iconSVG(shownKey);
+      step++;
+      if(step < totalSteps){
+        const delay = 45 + Math.pow(step / totalSteps, 2) * 140;
+        setTimeout(tick, delay);
+      } else {
+        settle(finalIndex);
+      }
+    }
+    tick();
+  }
+
+  function settle(index){
+    currentIndex = index;
+    drumBadge.classList.remove('spin');
+
+    const food = FOODS[index];
+    originPill.textContent = food.origin;
+    dishName.textContent = food.name;
+    enName.textContent = food.en;
+    descText.textContent = food.desc;
+    dishBadge.innerHTML = iconSVG(food.icon);
+    recipeLink.href = "https://www.google.com/search?q=" + encodeURIComponent(food.en + " recipe");
+
+    requestAnimationFrame(() => reveal.classList.add('show'));
+  }
+
+  againBtn.addEventListener('click', runDrumroll);
+  photoFrame.addEventListener('click', runDrumroll);
+
+  window.addEventListener('load', () => {
+    setTimeout(runDrumroll, 700);
+  });
+
+  /* ---- original jazzy ambience (not a copy of any existing recording) ---- */
+  let audioCtx = null, playing = false, loopTimer = null;
+  const audioBtn = document.getElementById('audioBtn');
+
+  function scheduleSwing(){
+    const notes = [261.6, 329.6, 392.0, 349.2, 293.7, 349.2, 392.0, 440.0];
+    let t = audioCtx.currentTime;
+    notes.forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.05, t + 0.05);
+      gain.gain.linearRampToValueAtTime(0, t + 0.35);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.4);
+      t += 0.42;
+    });
+    loopTimer = setTimeout(scheduleSwing, notes.length * 420);
+  }
+
+  audioBtn.addEventListener('click', () => {
+    if(!playing){
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      scheduleSwing();
+      playing = true;
+      audioBtn.textContent = "■ 정지";
+    } else {
+      clearTimeout(loopTimer);
+      if(audioCtx){ audioCtx.close(); audioCtx = null; }
+      playing = false;
+      audioBtn.textContent = "♪ 재즈 재생";
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
